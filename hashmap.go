@@ -14,23 +14,23 @@ type Bucket[K comparable, V any] struct {
 	next  *Bucket[K, V]
 }
 
-type Hashmap[K comparable, V any] struct {
+type HashMap[K comparable, V any] struct {
 	buckets []*Bucket[K, V]
 	size    int
 }
 
-func NewHashmap[K comparable, V any]() *Hashmap[K, V] {
+func NewHashMap[K comparable, V any]() *HashMap[K, V] {
 	size := DEFAULT_HASHMAP_SIZE
 	buckets := make([]*Bucket[K, V], size)
-	return &Hashmap[K, V]{buckets, size}
+	return &HashMap[K, V]{buckets, size}
 }
 
-func NewHashmapWithSize[K comparable, V any](size int) *Hashmap[K, V] {
+func NewHashmapWithSize[K comparable, V any](size int) *HashMap[K, V] {
 	buckets := make([]*Bucket[K, V], size)
-	return &Hashmap[K, V]{buckets, size}
+	return &HashMap[K, V]{buckets, size}
 }
 
-func (h *Hashmap[K, V]) hash(key K) (uint32, error) {
+func (h *HashMap[K, V]) hash(key K) (uint32, error) {
 	hash, err := h.hashKey(key)
 	if err != nil {
 		return hash, err
@@ -40,7 +40,7 @@ func (h *Hashmap[K, V]) hash(key K) (uint32, error) {
 	return i, nil
 }
 
-func (h *Hashmap[K, V]) hashKey(key K) (uint32, error) {
+func (h *HashMap[K, V]) hashKey(key K) (uint32, error) {
 	b, err := anyToBytes(key)
 	if err != nil {
 		return 0, err
@@ -51,7 +51,7 @@ func (h *Hashmap[K, V]) hashKey(key K) (uint32, error) {
 	return ha.Sum32(), nil
 }
 
-func (h *Hashmap[K, V]) Put(k K, v V) error {
+func (h *HashMap[K, V]) Put(k K, v V) error {
 	index, err := h.hash(k)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (h *Hashmap[K, V]) Put(k K, v V) error {
 	return nil
 }
 
-func (h *Hashmap[K, V]) Get(k K) (V, bool) {
+func (h *HashMap[K, V]) Get(k K) (V, bool) {
 	var val V
 
 	index, err := h.hash(k)
@@ -91,6 +91,32 @@ func (h *Hashmap[K, V]) Get(k K) (V, bool) {
 	}
 
 	return val, false
+}
+
+func (h *HashMap[K, V]) Delete(k K) bool {
+	index, err := h.hash(k)
+	if err != nil {
+		return false
+	}
+
+	head := h.buckets[index]
+
+	if head.key == k {
+		h.buckets[index] = head.next
+		return true
+	}
+
+	prev := head
+
+	for bucket := head; bucket != nil; bucket = bucket.next {
+		if bucket.key == k {
+			prev.next = bucket.next
+			return true
+		}
+		prev = bucket
+	}
+
+	return false
 }
 
 func anyToBytes(val any) ([]byte, error) {
