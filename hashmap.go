@@ -101,6 +101,10 @@ func (h *HashMap[K, V]) Delete(k K) bool {
 
 	head := h.buckets[index]
 
+	if head == nil {
+		return false
+	}
+
 	if head.key == k {
 		h.buckets[index] = head.next
 		return true

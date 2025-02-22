@@ -57,3 +57,12 @@ func TestDelete(t *testing.T) {
 	}
 	spew.Dump(hashmap)
 }
+
+func TestDeleteNonexistentKey(t *testing.T) {
+	hashmap := NewHashMap[string, string]()
+	hashmap.Put("hello", "world")
+	ok := hashmap.Delete("goodbye")
+	if ok {
+		t.Error("expected attempt to delete nonexistent key to return false")
+	}
+}
